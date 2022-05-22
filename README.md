@@ -74,8 +74,7 @@ Author Information
 ------------------
 
 <a href="https://www.linkedin.com/in/zainabsabry/">
-<img src="https://www.vectorlogo.zone/logos/linkedin/linkedin-icon.svg
-" alt="architecture" width="30" height="30" />
+<img src="https://www.vectorlogo.zone/logos/linkedin/linkedin-icon.svg" alt="architecture" width="30" height="30" />
 </a>
 
 
