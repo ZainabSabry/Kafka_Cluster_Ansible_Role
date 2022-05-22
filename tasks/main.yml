@@ -1,0 +1,107 @@
+---
+# tasks file for kafka-cluster
+- name: apt-get update
+  apt:
+    update_cache: yes
+- name: installing java
+  apt:
+    name: openjdk-8-jre-headless
+    state: present
+
+- name: installing kafka
+  get_url:
+    url: "{{ kafka_download_url }}"
+    dest: "{{ kafka_download_location }}"
+
+- name: extracting the downloaded package
+  unarchive: 
+    src: "{{ kafka_download_location }}"
+    dest: "{{ kafka_extraction_location }}"
+    remote_src: yes
+
+- name: creating directories for Zookeeper and Kafka to store their data
+  file:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/data/{{ item }}"
+    state: directory
+    recurse: true
+  loop: "{{ dirs }}"
+
+- name: creating files for the ids of Zookeeper's servers
+  file:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/data/zookeeper/myid"
+    state: touch
+
+- name: adding ids to 3 nodes
+  lineinfile:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/data/zookeeper/myid"
+    state: present
+    line: "{{ ansible_loop.index }}"
+  when: ansible_nodename == item
+  loop: "{{ nodes }}"
+  loop_control:
+    extended: yes
+
+- name: adding the data dir of zookeeper to the zookeeper config file
+  lineinfile:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/config/zookeeper.properties"
+    state: present
+    regexp: "^dataDir="
+    line: "dataDir={{ kafka_extraction_location }}{{ kafka_dir }}/data/zookeeper"
+
+- name: updating config file for each node
+  blockinfile:
+    state: present
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/config/zookeeper.properties"
+    block: |
+      {{ blocks[ ansible_loop.index0 ] }}
+  when: ansible_nodename == item
+  loop: "{{ nodes }}"
+  loop_control:
+    extended: yes
+
+- name: adding the id of each broker in the server config
+  lineinfile:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/config/server.properties"
+    state: present
+    regexp: "^broker.id="
+    line: "broker.id={{ ansible_loop.index }}"
+  when: ansible_nodename == item
+  loop: "{{ nodes }}"
+  loop_control:
+    extended: yes
+
+- name: adding the log dir in the server config
+  lineinfile:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/config/server.properties"
+    state: present
+    regexp: "^log.dirs="
+    line: "log.dirs={{ kafka_extraction_location }}{{ kafka_dir }}/data/kafka"
+
+- name: adding the ips of all brokers in the server config
+  lineinfile:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/config/server.properties"
+    state: present
+    regexp: "^zookeeper.connect="
+    line: "zookeeper.connect={{ ips[0] }}:2181,{{ ips[1] }}:2181,{{ ips[2] }}:2181"
+
+# Only for nodes with low specs
+- name: change the resource requests of kafka server
+  lineinfile:
+    path: "{{ kafka_extraction_location }}{{ kafka_dir }}/bin/kafka-server-start.sh"
+    state: present
+    regexp: "^    export KAFKA_HEAP_OPTS="
+    line: 'export KAFKA_HEAP_OPTS="-Xmx500M -Xms500M"'
+
+- name: Copy zookeeper and kafka service file to server
+  copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+    owner: root
+    group: root
+  notify:
+    - start {{ item }}
+  loop: "{{ services }}"
+
+
+
+

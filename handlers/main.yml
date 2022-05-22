@@ -1,0 +1,15 @@
+---
+# handlers file for kafka-cluster
+- name: start zookeeper.service
+  systemd:
+    name: zookeeper
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: start kafka.service
+  systemd:
+    name: kafka
+    state: started
+    enabled: yes
+    daemon_reload: yes

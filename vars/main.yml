@@ -1,0 +1,50 @@
+---
+# vars file for kafka-cluster
+kafka_download_url:  https://dlcdn.apache.org/kafka/3.1.0/kafka_2.13-3.1.0.tgz
+kafka_download_location: /home/ansible/kafka_2.13-3.1.0.tgz
+kafka_extraction_location: /home/ansible/
+kafka_dir: kafka_2.13-3.1.0
+dirs:
+- zookeeper
+- kafka
+nodes:
+- ip-172-31-82-123
+- ip-172-31-91-111
+- ip-172-31-81-101
+blocks:
+- | 
+  initLimit=5
+  syncLimit=2
+  tickTime=2000
+  # list of servers
+  server.1=0.0.0.0:2888:3888
+  server.2=172.31.91.111:2888:3888
+  server.3=172.31.81.101:2888:3888
+
+- | 
+  initLimit=5
+  syncLimit=2
+  tickTime=2000
+  # list of servers
+  server.1=172.31.82.123:2888:3888
+  server.2=0.0.0.0:2888:3888
+  server.3=172.31.81.101:2888:3888
+
+- |
+  initLimit=5
+  syncLimit=2
+  tickTime=2000
+  # list of servers
+  server.1=172.31.82.123:2888:3888
+  server.2=172.31.91.111:2888:3888
+  server.3=0.0.0.0:2888:3888
+
+ips:
+- 172.31.82.123
+- 172.31.91.111
+- 172.31.81.101
+
+services:
+- zookeeper.service
+- kafka.service
+

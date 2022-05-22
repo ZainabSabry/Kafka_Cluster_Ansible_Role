@@ -1,0 +1,11 @@
+[Unit]
+Description=service to start zookeeper
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/home/ansible/kafka_2.13-3.1.0
+ExecStart=/home/ansible/kafka_2.13-3.1.0/bin/zookeeper-server-start.sh /home/ansible/kafka_2.13-3.1.0/config/zookeeper.properties
+
+[Install]
+WantedBy=multi-user.target
